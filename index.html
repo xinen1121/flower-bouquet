@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>花束合成查詢系統</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: #f7f1f3;
+            color: #555;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 40px auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #8d3150;
+            margin-bottom: 35px;
+        }
+
+        .box {
+            background: rgba(255,255,255,0.75);
+            border-radius: 22px;
+            padding: 28px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #8d3150;
+        }
+
+        .select-area {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        select {
+            width: 230px;
+            padding: 13px 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background: white;
+            font-size: 16px;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 13px 22px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: #d35c86;
+            color: white;
+        }
+
+        .clear-btn {
+            background: #666;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .query-area {
+            display: flex;
+            gap: 20px;
+        }
+
+        .query-btn {
+            flex: 1;
+            background: #cf5b83;
+            color: white;
+            font-size: 18px;
+        }
+
+        .material {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 5px;
+        }
+
+        .remove-btn {
+            background: #eee;
+            padding: 4px 9px;
+            font-size: 13px;
+        }
+
+        .result-title {
+            color: #8d3150;
+            margin-top: 25px;
+        }
+
+        .recipe {
+            background: white;
+            border-radius: 15px;
+            padding: 18px;
+            margin: 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .recipe-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #8d3150;
+        }
+
+        .recipe-material {
+            margin-top: 8px;
+            line-height: 1.8;
+        }
+
+        .missing {
+            color: #c84b4b;
+            font-weight: bold;
+        }
+
+        .empty {
+            color: #888;
+            padding: 10px 0;
+        }
+
+        @media (max-width: 700px) {
+            .select-area,
+            .query-area {
+                flex-direction: column;
+            }
+
+            select,
+            .query-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🌷 花束合成查詢系統</h1>
+
+    <!-- 選擇材料 -->
+    <div class="box">
+
+        <h2>🌸 選擇材料</h2>
+
+        <div class="select-area">
+
+            <!-- 第一個：花種 -->
+            <select id="flowerType" onchange="showColors()">
+                <option value="">請選擇花種</option>
+            </select>
+
+            <!-- 第二個：顏色 -->
+            <select id="flowerColor">
+                <option value="">請先選擇花種</option>
+            </select>
+
+            <button class="add-btn" onclick="addFlower()">
+                ＋ 加入材料
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 我的材料 -->
+    <div class="box">
+
+        <h2>👜 我的材料</h2>
+
+        <div id="myFlowers">
+            <div class="empty">目前沒有材料</div>
+        </div>
+
+        <button class="clear-btn" onclick="clearFlowers()">
+            🗑 清空全部材料
+        </button>
+
+    </div>
+
+
+    <!-- 查詢 -->
+    <div class="box">
+
+        <h2>🔍 查詢組合</h2>
+
+        <div class="query-area">
+
+            <button class="query-btn" onclick="checkBouquets()">
+                💐 查詢花束組合
+            </button>
+
+            <button class="query-btn" onclick="checkRumors()">
+                🧙 查詢小道消息
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- 查詢結果 -->
+    <div class="box">
+
+        <div id="result">
+            <div class="empty">
+                請先加入你的花朵材料，再選擇要查詢的組合。
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
