@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>花束合成查詢系統</title>
+    <title>🌷 花束合成查詢系統</title>
 
     <style>
         * {
@@ -13,143 +12,255 @@
 
         body {
             margin: 0;
-            font-family: "Microsoft JhengHei", sans-serif;
-            background: #f7f1f3;
-            color: #555;
+            font-family:
+                "Noto Sans TC",
+                "Microsoft JhengHei",
+                Arial,
+                sans-serif;
+            background: #fff8fb;
+            color: #4b3b43;
         }
 
-        .container {
-            width: 90%;
-            max-width: 1100px;
-            margin: 40px auto;
-        }
-
-        h1 {
+        header {
+            background: linear-gradient(135deg, #ffdce9, #eee0ff);
+            padding: 30px 20px;
             text-align: center;
-            color: #8d3150;
-            margin-bottom: 35px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
 
-        .box {
-            background: rgba(255,255,255,0.75);
-            border-radius: 22px;
-            padding: 28px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
         }
 
-        h2 {
-            margin-top: 0;
-            color: #8d3150;
+        header p {
+            margin: 0;
+            color: #735f68;
         }
 
-        .select-area {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
+        main {
+            width: min(1100px, 94%);
+            margin: 25px auto 60px;
         }
 
-        select {
-            width: 230px;
-            padding: 13px 15px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
+        /* =========================
+           我的花材
+        ========================= */
+
+        .section {
             background: white;
-            font-size: 16px;
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 18px rgba(90, 60, 80, 0.08);
         }
 
-        button {
+        .section-title {
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        .flower-group {
+            border: 1px solid #f0dce5;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .flower-title {
+            background: #fff0f5;
+            padding: 13px 16px;
+            font-size: 19px;
+            font-weight: bold;
+        }
+
+        .flower-colors {
+            padding: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px;
+        }
+
+        .material-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #fffafc;
+            border: 1px solid #f2e4ea;
+            border-radius: 12px;
+        }
+
+        .material-name {
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .counter button {
+            width: 30px;
+            height: 30px;
             border: none;
-            border-radius: 10px;
-            padding: 13px 22px;
+            border-radius: 50%;
+            background: #f4d7e3;
+            color: #684c59;
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 30px;
+            padding: 0;
+        }
+
+        .counter button:hover {
+            background: #eabdd0;
+        }
+
+        .quantity {
+            min-width: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* =========================
+           查詢按鈕
+        ========================= */
+
+        .action-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .main-button {
+            border: none;
+            border-radius: 12px;
+            padding: 13px 20px;
             font-size: 16px;
             cursor: pointer;
+            background: #e9c5d6;
+            color: #543e48;
+            font-weight: bold;
         }
 
-        .add-btn {
-            background: #d35c86;
-            color: white;
+        .main-button:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
         }
 
-        .clear-btn {
-            background: #666;
-            color: white;
-            margin-top: 15px;
+        .rumor-button {
+            background: #ddd1ed;
         }
 
-        .query-area {
-            display: flex;
-            gap: 20px;
-        }
+        /* =========================
+           結果
+        ========================= */
 
-        .query-btn {
-            flex: 1;
-            background: #cf5b83;
-            color: white;
-            font-size: 18px;
-        }
-
-        .material {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin: 5px;
-        }
-
-        .remove-btn {
-            background: #eee;
-            padding: 4px 9px;
-            font-size: 13px;
+        #result {
+            margin-top: 22px;
         }
 
         .result-title {
-            color: #8d3150;
-            margin-top: 25px;
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 14px rgba(90, 60, 80, 0.08);
+            border-left: 5px solid #e5bfd1;
+        }
+
+        .result-card.can-make {
+            border-left-color: #9acfa9;
+        }
+
+        .result-card.cannot-make {
+            border-left-color: #e2a7a7;
+        }
+
+        .bouquet-name {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .price {
+            color: #9b6479;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
 
         .recipe {
-            background: white;
-            border-radius: 15px;
-            padding: 18px;
-            margin: 12px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .recipe-name {
-            font-size: 19px;
-            font-weight: bold;
-            color: #8d3150;
-        }
-
-        .recipe-material {
-            margin-top: 8px;
             line-height: 1.8;
+            color: #66555d;
         }
 
         .missing {
-            color: #c84b4b;
+            margin-top: 8px;
+            color: #b45d5d;
+            font-size: 14px;
+        }
+
+        .craft-button {
+            margin-top: 13px;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 17px;
+            background: #c9e7cf;
+            color: #365a3d;
+            font-size: 15px;
             font-weight: bold;
+            cursor: pointer;
         }
 
-        .empty {
-            color: #888;
-            padding: 10px 0;
+        .craft-button:hover {
+            background: #b5dbbd;
         }
 
-        @media (max-width: 700px) {
-            .select-area,
-            .query-area {
-                flex-direction: column;
+        .empty-message {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: #806d75;
+        }
+
+        .rumor-card {
+            background: #fffdf5;
+            border: 1px solid #eee2bd;
+            border-radius: 13px;
+            padding: 13px 16px;
+            margin-bottom: 9px;
+            line-height: 1.7;
+        }
+
+        .warning {
+            color: #a35f42;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 25px;
             }
 
-            select,
-            .query-btn {
-                width: 100%;
+            .flower-colors {
+                grid-template-columns: 1fr;
+            }
+
+            .material-item {
+                min-height: 54px;
             }
         }
     </style>
@@ -157,84 +268,37 @@
 
 <body>
 
-<div class="container">
-
+<header>
     <h1>🌷 花束合成查詢系統</h1>
+    <p>點擊 ＋、− 管理你的花材，再查詢可以合成的花束</p>
+</header>
 
-    <!-- 選擇材料 -->
-    <div class="box">
+<main>
 
-        <h2>🌸 選擇材料</h2>
-
-        <div class="select-area">
-
-            <!-- 第一個：花種 -->
-            <select id="flowerType" onchange="showColors()">
-                <option value="">請選擇花種</option>
-            </select>
-
-            <!-- 第二個：顏色 -->
-            <select id="flowerColor">
-                <option value="">請先選擇花種</option>
-            </select>
-
-            <button class="add-btn" onclick="addFlower()">
-                ＋ 加入材料
-            </button>
-
-        </div>
-
-    </div>
-
-
-    <!-- 我的材料 -->
-    <div class="box">
-
-        <h2>👜 我的材料</h2>
-
-        <div id="myFlowers">
-            <div class="empty">目前沒有材料</div>
-        </div>
-
-        <button class="clear-btn" onclick="clearFlowers()">
-            🗑 清空全部材料
-        </button>
-
-    </div>
-
+    <!-- 我的花材 -->
+    <section class="section">
+        <div class="section-title">🌸 我的花材</div>
+        <div id="myFlowers"></div>
+    </section>
 
     <!-- 查詢 -->
-    <div class="box">
+    <section class="section">
+        <div class="section-title">🔎 花束查詢</div>
 
-        <h2>🔍 查詢組合</h2>
-
-        <div class="query-area">
-
-            <button class="query-btn" onclick="checkBouquets()">
-                💐 查詢花束組合
+        <div class="action-area">
+            <button class="main-button" onclick="searchBouquets()">
+                🔎 查詢可合成花束
             </button>
 
-            <button class="query-btn" onclick="checkRumors()">
-                🧙 查詢小道消息
+            <button class="main-button rumor-button" onclick="showRumors()">
+                📰 小道消息
             </button>
-
         </div>
 
-    </div>
+        <div id="result"></div>
+    </section>
 
-
-    <!-- 查詢結果 -->
-    <div class="box">
-
-        <div id="result">
-            <div class="empty">
-                請先加入你的花朵材料，再選擇要查詢的組合。
-            </div>
-        </div>
-
-    </div>
-
-</div>
+</main>
 
 <script src="script.js"></script>
 
