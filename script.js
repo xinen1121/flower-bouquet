@@ -208,11 +208,385 @@ function initializeFlowers() {
 
 function saveFlowers() {
 
+    // 本機先保存，離線時也不會遺失
     localStorage.setItem(
         "myFlowers",
         JSON.stringify(myFlowers)
     );
 
+    // 已登入 Google 時，同步到 Firebase Firestore
+    saveFlowersToCloud();
+
+}
+
+
+/* =========================================================
+   2-1. Firebase 雲端同步
+   ========================================================= */
+
+let firebaseAuth = null;
+let firestoreDB = null;
+let firebaseCurrentUser = null;
+let firebaseFlowersRef = null;
+let firebaseUnsubscribe = null;
+let firebaseReady = false;
+let firebaseCloudLoading = false;
+let cloudSaveQueue = Promise.resolve();
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBIDQhP828b8ZPd0FmEjYncduvUd09XY2o",
+    authDomain: "flowers-b0290.firebaseapp.com",
+    projectId: "flowers-b0290",
+    storageBucket: "flowers-b0290.firebasestorage.app",
+    messagingSenderId: "247994618953",
+    appId: "1:247994618953:web:ccc16064810ae7fe259b98",
+    measurementId: "G-MPFVHDRDZS"
+};
+
+function createFirebaseLoginUI() {
+
+    if (document.getElementById("firebaseLoginArea")) {
+        return;
+    }
+
+    const area = document.createElement("div");
+    area.id = "firebaseLoginArea";
+    area.style.cssText = `
+        margin: 10px 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 14px;
+    `;
+
+    const container = document.getElementById("myFlowers");
+
+    if (container && container.parentNode) {
+        container.parentNode.insertBefore(area, container);
+    } else {
+        document.body.insertBefore(area, document.body.firstChild);
+    }
+
+    updateFirebaseLoginUI();
+}
+
+function updateFirebaseLoginUI() {
+
+    const area = document.getElementById("firebaseLoginArea");
+
+    if (!area) {
+        return;
+    }
+
+    area.innerHTML = "";
+
+    if (firebaseCurrentUser) {
+
+        const text = document.createElement("span");
+        text.textContent =
+            `☁️ 已同步：${firebaseCurrentUser.email || firebaseCurrentUser.displayName || "Google 帳號"}`;
+        text.style.fontSize = "14px";
+
+        const logoutButton = document.createElement("button");
+        logoutButton.type = "button";
+        logoutButton.textContent = "登出";
+        logoutButton.style.cssText = `
+            padding: 5px 9px;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+        `;
+
+        logoutButton.onclick = async () => {
+            if (!firebaseAuth) return;
+
+            try {
+                const { signOut } = await import(
+                    "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"
+                );
+                await signOut(firebaseAuth);
+            } catch (error) {
+                console.error("Firebase 登出失敗：", error);
+                alert(
+                    "登出失敗，請稍後再試。\n\n" +
+                    (error.message || error)
+                );
+            }
+        };
+
+        area.appendChild(text);
+        area.appendChild(logoutButton);
+        return;
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "🔐 使用 Google 登入並同步";
+    button.style.cssText = `
+        padding: 7px 12px;
+        border: 1px solid #aaa;
+        border-radius: 7px;
+        background: transparent;
+        cursor: pointer;
+        font-size: 14px;
+    `;
+    button.onclick = loginWithGoogle;
+
+    area.appendChild(button);
+}
+
+async function loginWithGoogle() {
+
+    if (!firebaseAuth || !firebaseReady) {
+        alert(
+            "Firebase 尚未準備完成，請稍等幾秒後再按一次。\n\n" +
+            "如果一直出現這個訊息，請把瀏覽器主控台錯誤截圖給我。"
+        );
+        return;
+    }
+
+    try {
+        const {
+            GoogleAuthProvider,
+            signInWithPopup
+        } = await import(
+            "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"
+        );
+
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(firebaseAuth, provider);
+
+    } catch (error) {
+        console.error("Google 登入失敗：", error);
+
+        if (error && error.code === "auth/popup-blocked") {
+            alert(
+                "瀏覽器阻擋了 Google 登入視窗。請允許此網站開啟彈出式視窗後，再按一次登入。"
+            );
+            return;
+        }
+
+        if (error && error.code === "auth/popup-closed-by-user") {
+            return;
+        }
+
+        alert(
+            "Google 登入失敗。\n\n" +
+            (error.message || error)
+        );
+    }
+}
+
+async function initializeFirebase() {
+
+    try {
+
+        const { initializeApp } = await import(
+            "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"
+        );
+
+        const {
+            getAuth,
+            onAuthStateChanged
+        } = await import(
+            "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"
+        );
+
+        const {
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc,
+            onSnapshot,
+            serverTimestamp
+        } = await import(
+            "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js"
+        );
+
+        const app = initializeApp(firebaseConfig);
+        firebaseAuth = getAuth(app);
+        firestoreDB = getFirestore(app);
+        firebaseReady = true;
+
+        createFirebaseLoginUI();
+
+        onAuthStateChanged(firebaseAuth, async user => {
+
+            if (firebaseUnsubscribe) {
+                firebaseUnsubscribe();
+                firebaseUnsubscribe = null;
+            }
+
+            firebaseCurrentUser = user;
+            firebaseFlowersRef = null;
+            firebaseCloudLoading = false;
+            updateFirebaseLoginUI();
+
+            if (!user) {
+                return;
+            }
+
+            firebaseFlowersRef = doc(
+                firestoreDB,
+                "users",
+                user.uid
+            );
+
+            firebaseCloudLoading = true;
+
+            try {
+
+                const cloudSnapshot = await getDoc(firebaseFlowersRef);
+
+                if (cloudSnapshot.exists()) {
+
+                    const data = cloudSnapshot.data();
+
+                    if (data.flowers && typeof data.flowers === "object") {
+                        myFlowers = normalizeFlowers(data.flowers);
+                        localStorage.setItem(
+                            "myFlowers",
+                            JSON.stringify(myFlowers)
+                        );
+                        updateMyFlowers();
+                    }
+
+                } else {
+
+                    // 這個 Google 帳號第一次登入：
+                    // 把目前瀏覽器已有的材料上傳到雲端。
+                    await setDoc(
+                        firebaseFlowersRef,
+                        {
+                            flowers: { ...myFlowers },
+                            updatedAt: serverTimestamp()
+                        },
+                        { merge: true }
+                    );
+                }
+
+                firebaseCloudLoading = false;
+
+                firebaseUnsubscribe = onSnapshot(
+                    firebaseFlowersRef,
+                    snapshot => {
+
+                        if (!snapshot.exists()) {
+                            return;
+                        }
+
+                        const data = snapshot.data();
+
+                        if (data.flowers && typeof data.flowers === "object") {
+                            myFlowers = normalizeFlowers(data.flowers);
+                            localStorage.setItem(
+                                "myFlowers",
+                                JSON.stringify(myFlowers)
+                            );
+                            updateMyFlowers();
+
+                            const result = document.getElementById("result");
+                            if (result && result.innerHTML.trim() !== "") {
+                                const resultTitle = result.querySelector(".result-title");
+                                if (
+                                    resultTitle &&
+                                    resultTitle.textContent.includes("查詢結果")
+                                ) {
+                                    searchBouquets();
+                                }
+                            }
+                        }
+                    },
+                    error => {
+                        console.error("Firestore 即時同步失敗：", error);
+                        firebaseCloudLoading = false;
+                    }
+                );
+
+            } catch (error) {
+
+                firebaseCloudLoading = false;
+                console.error("Firebase 雲端資料載入失敗：", error);
+
+                alert(
+                    "Google 已登入，但雲端資料讀取失敗。\n\n" +
+                    "請確認 Firebase Firestore 規則已設定好。\n\n" +
+                    (error.message || error)
+                );
+            }
+        });
+
+    } catch (error) {
+
+        firebaseReady = false;
+        console.error("Firebase 初始化失敗：", error);
+
+        createFirebaseLoginUI();
+    }
+}
+
+function normalizeFlowers(source) {
+
+    const normalized = {};
+
+    flowerData.forEach(flower => {
+
+        flower.colors.forEach(color => {
+
+            const key = makeKey(flower.type, color);
+            const value = Number(source[key]);
+
+            normalized[key] =
+                Number.isFinite(value) && value >= 0
+                    ? value
+                    : 0;
+        });
+    });
+
+    return normalized;
+}
+
+function saveFlowersToCloud() {
+
+    if (
+        !firebaseReady ||
+        !firebaseCurrentUser ||
+        !firebaseFlowersRef ||
+        firebaseCloudLoading
+    ) {
+        return;
+    }
+
+    const flowersToSave = { ...myFlowers };
+
+    cloudSaveQueue = cloudSaveQueue
+        .then(async () => {
+
+            if (!firebaseFlowersRef || !firebaseCurrentUser) {
+                return;
+            }
+
+            const { setDoc, serverTimestamp } = await import(
+                "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js"
+            );
+
+            await setDoc(
+                firebaseFlowersRef,
+                {
+                    flowers: flowersToSave,
+                    updatedAt: serverTimestamp()
+                },
+                { merge: true }
+            );
+        })
+        .catch(error => {
+            console.error("Firebase 保存失敗：", error);
+        });
 }
 
 
@@ -1124,9 +1498,7 @@ const bouquets = [
             "白梅花",
             "幽藍幻影百合"
         ]
-    },
-
-    {
+    },    {
         price: 680,
         name: "永恆誓約",
         ingredients: [
@@ -1655,7 +2027,10 @@ const ingredientAliases = {
         "春劍翠綠"
     ]
 
-};/* =========================================================
+};
+
+
+/* =========================================================
    8. 解析單一材料
    ========================================================= */
 
@@ -2546,10 +2921,7 @@ function craftBouquet(
         }」合成成功！`
     );
 
-}
-
-
-/* =========================================================
+}/* =========================================================
    15. 小道消息
    ========================================================= */
 
@@ -2876,9 +3248,212 @@ function escapeHTML(
 
 
 /* =========================================================
-   17. 啟動
+   17. Firebase 啟動
    ========================================================= */
+
+/*
+   先載入本機資料
+*/
 
 initializeFlowers();
 
+
+/*
+   先顯示目前材料
+*/
+
 updateMyFlowers();
+
+
+/*
+   再連接 Firebase
+
+   Firebase 登入後會自動：
+   ① 判斷目前 Google 帳號
+   ② 讀取雲端材料
+   ③ 沒有雲端資料時建立資料
+   ④ 有資料時載入
+   ⑤ 持續同步
+*/
+
+initializeFirebase();
+
+
+/* =========================================================
+   18. 確保網頁載入後 UI 存在
+   ========================================================= */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            updateMyFlowers();
+
+            createFirebaseLoginUI();
+
+        }
+    );
+
+} else {
+
+    createFirebaseLoginUI();
+
+}/* =========================================================
+   19. Firebase 狀態檢查
+   ========================================================= */
+
+window.firebaseFlowers = {
+    getCurrentUser: function () {
+        return firebaseCurrentUser;
+    },
+
+    isReady: function () {
+        return firebaseReady;
+    },
+
+    isLoggedIn: function () {
+        return !!firebaseCurrentUser;
+    }
+};
+
+
+/* =========================================================
+   20. 頁面離開前再保存一次
+   ========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        try {
+
+            localStorage.setItem(
+                "myFlowers",
+                JSON.stringify(myFlowers)
+            );
+
+        } catch (error) {
+
+            console.error(
+                "離開頁面前保存失敗：",
+                error
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   21. 防止數量出現負數
+   ========================================================= */
+
+function repairFlowerQuantities() {
+
+    let changed = false;
+
+
+    Object.keys(myFlowers).forEach(
+        key => {
+
+            let value =
+                Number(
+                    myFlowers[key]
+                );
+
+
+            if (
+                !Number.isFinite(value) ||
+                value < 0
+            ) {
+
+                value = 0;
+                changed = true;
+
+            }
+
+
+            if (
+                !Number.isInteger(value)
+            ) {
+
+                value =
+                    Math.floor(value);
+
+                changed = true;
+
+            }
+
+
+            myFlowers[key] =
+                value;
+
+        }
+    );
+
+
+    if (changed) {
+
+        localStorage.setItem(
+            "myFlowers",
+            JSON.stringify(myFlowers)
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   22. 最後初始化整理
+   ========================================================= */
+
+repairFlowerQuantities();
+
+
+/* =========================================================
+   23. 提供外部按鈕使用的函式
+   ========================================================= */
+
+window.searchBouquets =
+    searchBouquets;
+
+window.showRumors =
+    showRumors;
+
+window.changeQuantity =
+    changeQuantity;
+
+window.craftBouquet =
+    craftBouquet;
+
+window.craftRumor =
+    craftRumor;
+
+
+/* =========================================================
+   24. 完成
+   ========================================================= */
+
+/*
+   到這裡 script.js 就全部完成。
+
+   功能：
+
+   🌸 花材固定順序
+   🌸 每種花 10 種顏色
+   ➖➕ 直接修改數量
+   💾 localStorage 保存
+   ☁️ Firebase Firestore 保存
+   🔐 Google 登入
+   📱 電腦 / 手機同步
+   💐 花束合成自動扣材料
+   📰 小道消息合成自動扣材料
+   🔄 Firebase 即時同步
+*/
