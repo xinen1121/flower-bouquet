@@ -8,7 +8,6 @@
    ========================================================= */
 
 const flowerData = [
-
     {
         type: "雛菊",
         colors: [
@@ -90,30 +89,6 @@ const flowerData = [
     },
 
     {
-        type: "鬱金香",
-        colors: [
-            "紫",
-            "黃",
-            "紅",
-            "粉",
-            "白",
-            "雙色羽毛",
-            "橙色皇后",
-            "皇家金絲墨"
-        ]
-    },
-
-    {
-        type: "桔梗",
-        colors: [
-            "藍紫",
-            "白",
-            "粉",
-            "雙色洋"
-        ]
-    },
-
-    {
         type: "百合",
         colors: [
             "白",
@@ -130,6 +105,38 @@ const flowerData = [
     },
 
     {
+        type: "鬱金香",
+        colors: [
+            "紫",
+            "黃",
+            "紅",
+            "粉",
+            "白",
+            "雙色羽毛",
+            "橙色皇后",
+            "皇家金絲墨",
+            "夜皇后黑鬱金香",
+            "冰藍幻彩鬱金香"
+        ]
+    },
+
+    {
+        type: "桔梗",
+        colors: [
+            "藍紫",
+            "白",
+            "粉",
+            "雙色洋",
+            "雙層紫",
+            "淡綠",
+            "胭脂紅桔梗",
+            "琥珀黃",
+            "星空幽藍",
+            "黯夜金斑"
+        ]
+    },
+
+    {
         type: "蘭花",
         colors: [
             "白花蝴蝶蘭",
@@ -139,10 +146,11 @@ const flowerData = [
             "春劍翠綠",
             "粉紅蝴蝶蘭",
             "達摩線藝蘭",
-            "鬼魅黑蘭"
+            "鬼魅黑蘭",
+            "黃金小春藍",
+            "健素心蘭"
         ]
     }
-
 ];
 
 
@@ -153,7 +161,20 @@ const flowerData = [
 let myFlowers = {};
 
 
+/*
+   初始化花材
+
+   ★ 重要：
+   不再每次刷新都全部變成 0。
+   會先從 localStorage 讀取之前的數量。
+*/
+
 function initializeFlowers() {
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem("myFlowers") || "{}"
+        );
 
     myFlowers = {};
 
@@ -161,13 +182,36 @@ function initializeFlowers() {
 
         flower.colors.forEach(color => {
 
-            const key = makeKey(flower.type, color);
+            const key =
+                makeKey(
+                    flower.type,
+                    color
+                );
 
-            myFlowers[key] = 0;
+            myFlowers[key] =
+                Number.isFinite(
+                    Number(saved[key])
+                )
+                    ? Number(saved[key])
+                    : 0;
 
         });
 
     });
+
+}
+
+
+/*
+   儲存目前花材數量
+*/
+
+function saveFlowers() {
+
+    localStorage.setItem(
+        "myFlowers",
+        JSON.stringify(myFlowers)
+    );
 
 }
 
@@ -181,7 +225,11 @@ function makeKey(type, color) {
 
 function getQuantity(type, color) {
 
-    const key = makeKey(type, color);
+    const key =
+        makeKey(
+            type,
+            color
+        );
 
     return myFlowers[key] || 0;
 
@@ -194,117 +242,184 @@ function getQuantity(type, color) {
 
 function updateMyFlowers() {
 
-    const container = document.getElementById("myFlowers");
+    const container =
+        document.getElementById(
+            "myFlowers"
+        );
 
     container.innerHTML = "";
 
 
     flowerData.forEach(flower => {
 
-        const group = document.createElement("div");
+        const group =
+            document.createElement(
+                "div"
+            );
 
-        group.className = "flower-group";
+        group.className =
+            "flower-group";
 
 
-        const title = document.createElement("div");
+        const title =
+            document.createElement(
+                "div"
+            );
 
-        title.className = "flower-title";
+        title.className =
+            "flower-title";
 
-        title.textContent = `🌸 ${flower.type}`;
+        title.textContent =
+            `🌸 ${flower.type}`;
 
         group.appendChild(title);
 
 
-        const colorsContainer = document.createElement("div");
+        const colorsContainer =
+            document.createElement(
+                "div"
+            );
 
-        colorsContainer.className = "flower-colors";
+        colorsContainer.className =
+            "flower-colors";
 
 
         flower.colors.forEach(color => {
 
-            const key = makeKey(
-                flower.type,
-                color
+            const key =
+                makeKey(
+                    flower.type,
+                    color
+                );
+
+            const quantity =
+                myFlowers[key] || 0;
+
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "material-item";
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "material-name";
+
+            name.textContent =
+                color;
+
+
+            const counter =
+                document.createElement(
+                    "div"
+                );
+
+            counter.className =
+                "counter";
+
+
+            const minusButton =
+                document.createElement(
+                    "button"
+                );
+
+            minusButton.textContent =
+                "−";
+
+            minusButton.title =
+                "減少";
+
+            minusButton.onclick =
+                () => {
+
+                    changeQuantity(
+                        flower.type,
+                        color,
+                        -1
+                    );
+
+                };
+
+
+            const number =
+                document.createElement(
+                    "span"
+                );
+
+            number.className =
+                "quantity";
+
+            number.textContent =
+                quantity;
+
+
+            const plusButton =
+                document.createElement(
+                    "button"
+                );
+
+            plusButton.textContent =
+                "+";
+
+            plusButton.title =
+                "增加";
+
+            plusButton.onclick =
+                () => {
+
+                    changeQuantity(
+                        flower.type,
+                        color,
+                        1
+                    );
+
+                };
+
+
+            counter.appendChild(
+                minusButton
             );
 
-            const quantity = myFlowers[key] || 0;
+            counter.appendChild(
+                number
+            );
+
+            counter.appendChild(
+                plusButton
+            );
 
 
-            const item = document.createElement("div");
+            item.appendChild(
+                name
+            );
 
-            item.className = "material-item";
-
-
-            const name = document.createElement("div");
-
-            name.className = "material-name";
-
-            name.textContent = color;
+            item.appendChild(
+                counter
+            );
 
 
-            const counter = document.createElement("div");
-
-            counter.className = "counter";
-
-
-            const minusButton = document.createElement("button");
-
-            minusButton.textContent = "−";
-
-            minusButton.title = "減少";
-
-            minusButton.onclick = () => {
-
-                changeQuantity(
-                    flower.type,
-                    color,
-                    -1
-                );
-
-            };
-
-
-            const number = document.createElement("span");
-
-            number.className = "quantity";
-
-            number.textContent = quantity;
-
-
-            const plusButton = document.createElement("button");
-
-            plusButton.textContent = "+";
-
-            plusButton.title = "增加";
-
-            plusButton.onclick = () => {
-
-                changeQuantity(
-                    flower.type,
-                    color,
-                    1
-                );
-
-            };
-
-
-            counter.appendChild(minusButton);
-            counter.appendChild(number);
-            counter.appendChild(plusButton);
-
-
-            item.appendChild(name);
-            item.appendChild(counter);
-
-
-            colorsContainer.appendChild(item);
+            colorsContainer.appendChild(
+                item
+            );
 
         });
 
 
-        group.appendChild(colorsContainer);
+        group.appendChild(
+            colorsContainer
+        );
 
-        container.appendChild(group);
+        container.appendChild(
+            group
+        );
 
     });
 
@@ -315,13 +430,23 @@ function updateMyFlowers() {
    4. 加減花材
    ========================================================= */
 
-function changeQuantity(type, color, amount) {
+function changeQuantity(
+    type,
+    color,
+    amount
+) {
 
-    const key = makeKey(type, color);
+    const key =
+        makeKey(
+            type,
+            color
+        );
 
-    const current = myFlowers[key] || 0;
+    const current =
+        myFlowers[key] || 0;
 
-    let newValue = current + amount;
+    let newValue =
+        current + amount;
 
 
     if (newValue < 0) {
@@ -331,7 +456,17 @@ function changeQuantity(type, color, amount) {
     }
 
 
-    myFlowers[key] = newValue;
+    myFlowers[key] =
+        newValue;
+
+
+    /*
+       ★ 每次按 + / − 都立即儲存
+       所以重新整理網頁後不會歸零
+    */
+
+    saveFlowers();
+
 
     updateMyFlowers();
 
@@ -347,13 +482,17 @@ const bouquets = [
     {
         price: 100,
         name: "清晨踏青",
-        ingredients: ["白雛菊*3"]
+        ingredients: [
+            "白雛菊*3"
+        ]
     },
 
     {
         price: 100,
         name: "微微一笑",
-        ingredients: ["黃雛菊*3"]
+        ingredients: [
+            "黃雛菊*3"
+        ]
     },
 
     {
@@ -368,20 +507,42 @@ const bouquets = [
 
     {
         price: 100,
-        name: "小小幸運",
-        ingredients: [
-            "深紅雛菊",
-            "雪白薰衣草",
-            "鵝黃滿天星"
-        ]
-    },
-
-    {
-        price: 100,
         name: "微微一笑",
         ingredients: [
             "原生淺紫薰衣草*2",
             "黃鬱金香"
+        ]
+    },
+
+    {
+        price: 130,
+        special: true,
+        name: "晨曦花語",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "白滿天星"
+        ]
+    },
+
+    {
+        price: 130,
+        name: "月下私語",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "綠萼梅花"
+        ]
+    },
+
+    {
+        price: 130,
+        special: true,
+        name: "微風輕拂",
+        ingredients: [
+            "黃雛菊",
+            "白滿天星",
+            "玉蝶梅花"
         ]
     },
 
@@ -409,6 +570,7 @@ const bouquets = [
 
     {
         price: 140,
+        special: true,
         name: "祝福鈴聲",
         ingredients: [
             "白雛菊",
@@ -420,6 +582,90 @@ const bouquets = [
 
     {
         price: 182,
+        special: true,
+        name: "雨後彩虹",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "原生淺紫薰衣草",
+            "宮粉梅花"
+        ]
+    },
+
+    {
+        price: 182,
+        name: "午後小憩",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "白雪薰衣草",
+            "綠萼梅花"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
+        name: "雪國情書",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "白雪薰衣草",
+            "香檳玫瑰"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
+        name: "晚霞絮語",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "杏桃黃薰衣草",
+            "宮粉梅花"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
+        name: "金色年華",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "微光粉薰衣草",
+            "朱砂梅花"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
+        name: "紫醉花香",
+        ingredients: [
+            "白雛菊",
+            "淺藍滿天星",
+            "原生淺紫薰衣草",
+            "玉蝶梅花"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
+        name: "蜜糖派對",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "雙色斑紋薰衣草",
+            "香檳玫瑰"
+        ]
+    },
+
+    {
+        price: 182,
+        special: true,
         name: "午後小憩",
         ingredients: [
             "白雛菊",
@@ -478,6 +724,161 @@ const bouquets = [
 
     {
         price: 260,
+        name: "童話花園",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "龍游梅花"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "星夜物語",
+        ingredients: [
+            "白雛菊",
+            "淺藍滿天星",
+            "灑金梅花"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "銀河漫步",
+        ingredients: [
+            "白雛菊",
+            "淺藍滿天星",
+            "照水梅花"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "甜蜜時光",
+        ingredients: [
+            "白雛菊",
+            "胭脂紅滿天星",
+            "灑金梅花"
+        ]
+    },
+
+    {
+        price: 260,
+        name: "海風之戀",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "白雪薰衣草",
+            "白梅花",
+            "白玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "琥珀之夢",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "原生淺紫薰衣草",
+            "朱砂梅花",
+            "紅玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
+        name: "緋色圓舞",
+        ingredients: [
+            "白雛菊",
+            "淡粉滿天星",
+            "原生淺紫薰衣草",
+            "宮粉梅花",
+            "香水姬百合"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "奶貓搖鈴",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "白雪薰衣草",
+            "白梅花",
+            "橙黃玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "青空之詩",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "甜蜜藍薰衣草",
+            "白梅花",
+            "粉紅玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
+        special: true,
+        name: "玫瑰騎士",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "灑金梅花",
+            "粉紅玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
+        name: "鬍鬚微風",
+        ingredients: [
+            "黃雛菊",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "綠萼梅花",
+            "虎斑雙色百合"
+        ]
+    },
+
+    {
+        price: 260,
+        name: "寶石盒子",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "灑金梅花",
+            "香檳金百合"
+        ]
+    },
+
+    {
+        price: 260,
+        name: "窗台日光浴",
+        ingredients: [
+            "黃雛菊",
+            "白滿天星",
+            "英倫深紫薰衣草",
+            "白梅花",
+            "橙黃玫瑰"
+        ]
+    },
+
+    {
+        price: 260,
         special: true,
         name: "海風之戀",
         ingredients: [
@@ -523,7 +924,7 @@ const bouquets = [
         name: "繽紛嘉年華",
         ingredients: [
             "灑金梅花*2",
-            "橙紅雛菊"
+            "橙黃雛菊"
         ]
     },
 
@@ -557,6 +958,39 @@ const bouquets = [
 
     {
         price: 416,
+        name: "糖霜蛋糕",
+        ingredients: [
+            "白雛菊",
+            "淡粉滿天星",
+            "白雪薰衣草",
+            "黑魔術玫瑰"
+        ]
+    },
+
+    {
+        price: 416,
+        name: "天使羽翼",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "曜夜極黑薰衣草",
+            "綠萼梅花"
+        ]
+    },
+
+    {
+        price: 416,
+        name: "奶油雲朵",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "杏桃黃薰衣草",
+            "玉蝶梅花"
+        ]
+    },
+
+    {
+        price: 416,
         special: true,
         name: "天使羽翼",
         ingredients: [
@@ -582,11 +1016,11 @@ const bouquets = [
     {
         price: 494,
         special: true,
-        name: "霧中精靈",
+        name: "楓紅信箋",
         ingredients: [
             "白雛菊",
-            "薰衣紫滿天星",
-            "照水梅花"
+            "白滿天星",
+            "黑魔術玫瑰"
         ]
     },
 
@@ -611,6 +1045,52 @@ const bouquets = [
     },
 
     {
+        price: 494,
+        name: "霧中精靈",
+        ingredients: [
+            "白雛菊",
+            "薰衣紫滿天星",
+            "照水梅花"
+        ]
+    },
+
+    {
+        price: 494,
+        special: true,
+        name: "霧中精靈",
+        ingredients: [
+            "白雛菊",
+            "薰衣紫滿天星",
+            "照水梅花"
+        ]
+    },
+
+    {
+        price: 598,
+        special: true,
+        name: "虎斑搖籃",
+        ingredients: [
+            "黃雛菊",
+            "淡粉滿天星",
+            "原生淺紫薰衣草",
+            "紫葉紅梅花",
+            "紅玫瑰"
+        ]
+    },
+
+    {
+        price: 598,
+        name: "蝴蝶結禮讚",
+        ingredients: [
+            "白雛菊",
+            "淡粉滿天星",
+            "原生淺紫薰衣草",
+            "宮粉梅花",
+            "皇家金絲墨鬱金香"
+        ]
+    },
+
+    {
         price: 598,
         name: "毛球慶典",
         ingredients: [
@@ -624,13 +1104,25 @@ const bouquets = [
 
     {
         price: 598,
-        name: "蝴蝶結禮讚",
+        name: "尾巴圓舞曲",
         ingredients: [
             "白雛菊",
-            "淡粉滿天星",
+            "白滿天星",
             "原生淺紫薰衣草",
-            "宮粉梅花",
-            "皇家金絲墨鬱金香"
+            "紫葉紅梅花",
+            "紫玫瑰"
+        ]
+    },
+
+    {
+        price: 598,
+        name: "毛球慶典",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "微光粉薰衣草",
+            "白梅花",
+            "幽藍幻影百合"
         ]
     },
 
@@ -710,6 +1202,40 @@ const bouquets = [
 
     {
         price: 780,
+        name: "瞳孔星空",
+        ingredients: [
+            "白雛",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "璀璨極光百合"
+        ]
+    },
+
+    {
+        price: 780,
+        name: "逗貓棒狂想",
+        ingredients: [
+            "黃雛菊",
+            "淺藍滿天星",
+            "原生淺紫薰衣草",
+            "彩虹幻境玫瑰"
+        ]
+    },
+
+    {
+        price: 780,
+        special: true,
+        name: "肉墊印記",
+        ingredients: [
+            "白雛菊",
+            "胭脂紅滿天星",
+            "原生淺紫薰衣草",
+            "黑魔術玫瑰"
+        ]
+    },
+
+    {
+        price: 780,
         special: true,
         name: "慵懶午後",
         ingredients: [
@@ -717,28 +1243,6 @@ const bouquets = [
             "白滿天星",
             "英倫深紫薰衣草",
             "璀璨極光百合"
-        ]
-    },
-
-    {
-        price: 780,
-        name: "瞳孔星空",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "原生淺紫薰衣草",
-            "璀璨極光百合"
-        ]
-    },
-
-    {
-        price: 780,
-        name: "肉墊印記",
-        ingredients: [
-            "白雛菊",
-            "胭脂紅滿天星",
-            "原生淺紫薰衣草",
-            "黑魔術玫瑰"
         ]
     },
 
@@ -805,6 +1309,16 @@ const bouquets = [
 
     {
         price: 884,
+        name: "貓神的祝福",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "彩虹幻境玫瑰"
+        ]
+    },
+
+    {
+        price: 884,
         special: true,
         name: "貓神的祝福",
         ingredients: [
@@ -820,6 +1334,18 @@ const bouquets = [
         ingredients: [
             "薄荷綠滿天星*2",
             "煥采星河滿天星*2"
+        ]
+    },
+
+    {
+        price: 1144,
+        name: "踏踏節奏",
+        ingredients: [
+            "白雛菊",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "琥珀冰晶梅花",
+            "粉紅玫瑰"
         ]
     },
 
@@ -855,6 +1381,18 @@ const bouquets = [
             "微光粉薰衣草",
             "白梅",
             "幽藍幻影百合"
+        ]
+    },
+
+    {
+        price: 1144,
+        name: "貓草花田",
+        ingredients: [
+            "黃雛菊",
+            "白滿天星",
+            "原生淺紫薰衣草",
+            "玉蝶梅",
+            "皇家金絲墨鬱金香"
         ]
     },
 
@@ -910,6 +1448,16 @@ const bouquets = [
     },
 
     {
+        price: 1690,
+        name: "飛簷散步",
+        ingredients: [
+            "白雛菊",
+            "曜夜極黑薰衣草",
+            "彩虹幻境玫瑰"
+        ]
+    },
+
+    {
         price: 1800,
         name: "頂級心意",
         ingredients: [
@@ -951,288 +1499,12 @@ const bouquets = [
         ]
     },
 
-
-    /* =====================================================
-       特殊 / 無價格花束
-       ===================================================== */
-
-    {
-        special: true,
-        name: "春日暖陽",
-        ingredients: [
-            "黃雛菊",
-            "鵝黃滿天星",
-            "硃砂梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "晚霞絮語",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "杏桃黃薰衣草",
-            "宮粉梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "金色年華",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "微光粉薰衣草",
-            "硃砂梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "紫醉花香",
-        ingredients: [
-            "白雛菊",
-            "淺藍滿天星",
-            "原生淺紫薰衣草",
-            "玉蝶梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "祝福鈴聲",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "甜蜜藍薰衣草",
-            "橙黃玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "蜜糖派對",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "雙色斑紋薰衣草",
-            "香檳玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "肉墊玫瑰",
-        ingredients: [
-            "白雛菊",
-            "胭脂紅滿天星",
-            "原生淺紫薰衣草",
-            "黑魔法玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "琥珀之夢",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "原生淺紫薰衣草",
-            "硃砂梅花",
-            "紅玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "奶貓搖鈴",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "白雪薰衣草",
-            "白梅花",
-            "橙黃玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "虎斑搖籃",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "原生淺紫薰衣草",
-            "紫葉紅梅花",
-            "紅玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "青空之詩",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "甜蜜藍薰衣草",
-            "白梅花",
-            "粉紅玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "玫瑰騎士",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "原生淺紫薰衣草",
-            "撒金梅花",
-            "粉紅玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "星業物語",
-        ingredients: [
-            "白雛菊",
-            "淺藍滿天星",
-            "灑金梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "銀河漫步",
-        ingredients: [
-            "白雛菊",
-            "淺藍滿天星",
-            "照水梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "語後彩虹",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "原生淺紫薰衣草",
-            "宮粉梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "雪國情書",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "白雪薰衣草",
-            "香檳玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "楓紅信箋",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "黑魔術玫瑰"
-        ]
-    },
-
-    {
-        special: true,
-        name: "童話花園",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "龍游梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "微風輕拂",
-        ingredients: [
-            "黃雛菊",
-            "白滿天星",
-            "玉蝶梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "甜蜜時光",
-        ingredients: [
-            "白雛菊",
-            "胭脂紅滿天星",
-            "灑金梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "晨曦花語",
-        ingredients: [
-            "白雛菊",
-            "白滿天星*2"
-        ]
-    },
-
-    {
-        special: true,
-        name: "金色年華",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "微光粉薰衣草",
-            "硃砂梅花"
-        ]
-    },
-
-    {
-        special: true,
-        name: "童話花園",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "龍游梅花"
-        ]
-    },
-
-    {
-        name: "尾巴圓舞曲",
-        ingredients: [
-            "白雛菊",
-            "白滿天星",
-            "原生淺紫薰衣草",
-            "紫葉紅梅花",
-            "紫玫瑰"
-        ]
-    },
-
-    {
-        name: "琥珀之夢",
-        ingredients: [
-            "黃雛菊",
-            "淡粉滿天星",
-            "原生淺紫薰衣草",
-            "硃砂梅花",
-            "紅玫瑰"
-        ]
-    },
-
     {
         name: "奇蹟相遇",
         ingredients: [
             "皇家金絲墨鬱金香*3"
         ]
     }
-
 ];
 
 
@@ -1242,41 +1514,7 @@ const bouquets = [
 
 const rumors = [
 
-    "白雛菊、曜夜極黑薰衣草、彩虹幻境玫瑰",
-
-    "白雛菊、淺藍滿天星、原生淺紫薰衣草、玉蝶梅花",
-
-    "黃雛菊、淺藍滿天星、原生淺紫薰衣草、彩虹幻境玫瑰",
-
-    "白雛菊、白滿天星、原生淺紫薰衣草、琥珀冰晶梅花、粉紅玫瑰",
-
-    "白雛菊、淺藍滿天星、原生淺紫薰衣草、玉蝶梅花",
-
-    "白雛菊、白滿天星、原生淺紫薰衣草、璀璨極光百合",
-
-    "白雛菊、胭脂紅滿天星、原生淺紫薰衣草、黑魔術玫瑰",
-
-    "白雛菊、胭脂紅滿天星、灑金梅花",
-
-    "黃雛菊、白滿天星、原生淺紫薰衣草、玉蝶梅花、皇家金絲墨鬱金香",
-
-    "白雛菊、淺藍滿天星、彩虹幻境玫瑰",
-
-    "白雛菊、白滿天星、原生淺紫薰衣草、灑金梅花、香檳金百合",
-
-    "白雛菊、白滿天星、雪白薰衣草、白梅花、橙黃玫瑰",
-
-    "黃雛菊、白滿天星、英倫深紫薰衣草、璀璨極光百合",
-
-    "白雛菊、白滿天星、原生淺紫薰衣草、璀璨極光百合",
-
-    "黃雛菊、淡粉滿天星、雙色斑紋薰衣草、香檳玫瑰",
-
-    "白雛菊、淺藍滿天星、灑金梅花",
-
-    "白雛菊、胭脂滿天星、原生淺紫薰衣草、黑魔術玫瑰",
-
-    "白雛菊、白滿天星、甜蜜藍薰衣草、白梅花、粉紅玫瑰"
+    "白雛菊、曜夜極黑薰衣草、彩虹幻境玫瑰"
 
 ];
 
@@ -1287,56 +1525,137 @@ const rumors = [
 
 const ingredientAliases = {
 
-    "白梅": ["梅花", "白"],
+    "白雛": [
+        "雛菊",
+        "白"
+    ],
 
-    "黃鬱金香": ["鬱金香", "黃"],
+    "雙色雛菊": [
+        "雛菊",
+        "雙色"
+    ],
 
-    "皇家金絲鬱金香": ["鬱金香", "皇家金絲墨"],
+    "朱砂梅花": [
+        "梅花",
+        "硃砂"
+    ],
 
-    "紫玫瑰": ["玫瑰", "紫"],
+    "白梅": [
+        "梅花",
+        "白"
+    ],
 
-    "香檳玫瑰": ["玫瑰", "香檳"],
+    "黃鬱金香": [
+        "鬱金香",
+        "黃"
+    ],
 
-    "粉紅玫瑰": ["玫瑰", "粉紅"],
+    "皇家金絲鬱金香": [
+        "鬱金香",
+        "皇家金絲墨"
+    ],
 
-    "紅玫瑰": ["玫瑰", "紅"],
+    "紫玫瑰": [
+        "玫瑰",
+        "紫"
+    ],
 
-    "橙黃玫瑰": ["玫瑰", "橙黃"],
+    "香檳玫瑰": [
+        "玫瑰",
+        "香檳"
+    ],
 
-    "黑魔法玫瑰": ["玫瑰", "黑魔術"],
+    "粉紅玫瑰": [
+        "玫瑰",
+        "粉紅"
+    ],
 
-    "彩虹幻境玫瑰": ["玫瑰", "彩虹幻境"],
+    "紅玫瑰": [
+        "玫瑰",
+        "紅"
+    ],
 
-    "綠色碧玉玫瑰": ["玫瑰", "綠色碧玉"],
+    "橙黃玫瑰": [
+        "玫瑰",
+        "橙黃"
+    ],
 
-    "撒金梅花": ["梅花", "灑金"],
+    "黑魔法玫瑰": [
+        "玫瑰",
+        "黑魔術"
+    ],
 
-    "香檳金百合": ["百合", "香檳金"],
+    "彩虹幻境玫瑰": [
+        "玫瑰",
+        "彩虹幻境"
+    ],
 
-    "璀璨極光百合": ["百合", "璀璨極光"],
+    "綠色碧玉玫瑰": [
+        "玫瑰",
+        "綠色碧玉"
+    ],
 
-    "幽藍幻影百合": ["百合", "幽藍幻影"],
+    "撒金梅花": [
+        "梅花",
+        "灑金"
+    ],
 
-    "紫羅蘭蕙蘭": ["蘭花", "紫羅蘭蕙蘭"],
+    "香檳金百合": [
+        "百合",
+        "香檳金"
+    ],
 
-    "達摩線藝蘭": ["蘭花", "達摩線藝蘭"],
+    "璀璨極光百合": [
+        "百合",
+        "璀璨極光"
+    ],
 
-    "大花蕙蘭": ["蘭花", "大花蕙蘭"],
+    "幽藍幻影百合": [
+        "百合",
+        "幽藍幻影"
+    ],
 
-    "翡翠素心蘭": ["蘭花", "翡翠素心蘭"],
+    "紫羅蘭蕙蘭": [
+        "蘭花",
+        "紫羅蘭蕙蘭"
+    ],
 
-    "白花蝴蝶蘭": ["蘭花", "白花蝴蝶蘭"],
+    "達摩線藝蘭": [
+        "蘭花",
+        "達摩線藝蘭"
+    ],
 
-    "粉紅蝴蝶蘭": ["蘭花", "粉紅蝴蝶蘭"],
+    "大花蕙蘭": [
+        "蘭花",
+        "大花蕙蘭"
+    ],
 
-    "鬼魅黑蘭": ["蘭花", "鬼魅黑蘭"],
+    "翡翠素心蘭": [
+        "蘭花",
+        "翡翠素心蘭"
+    ],
 
-    "春劍翠綠": ["蘭花", "春劍翠綠"]
+    "白花蝴蝶蘭": [
+        "蘭花",
+        "白花蝴蝶蘭"
+    ],
 
-};
+    "粉紅蝴蝶蘭": [
+        "蘭花",
+        "粉紅蝴蝶蘭"
+    ],
 
+    "鬼魅黑蘭": [
+        "蘭花",
+        "鬼魅黑蘭"
+    ],
 
-/* =========================================================
+    "春劍翠綠": [
+        "蘭花",
+        "春劍翠綠"
+    ]
+
+};/* =========================================================
    8. 解析單一材料
    ========================================================= */
 
@@ -1345,14 +1664,24 @@ function parseIngredient(text) {
     let quantity = 1;
 
 
-    const match = text.match(/\*(\d+)$/);
+    const match =
+        text.match(
+            /\*(\d+)$/
+        );
 
 
     if (match) {
 
-        quantity = Number(match[1]);
+        quantity =
+            Number(
+                match[1]
+            );
 
-        text = text.replace(/\*(\d+)$/, "");
+        text =
+            text.replace(
+                /\*(\d+)$/,
+                ""
+            );
 
     }
 
@@ -1363,11 +1692,14 @@ function parseIngredient(text) {
 
             original: text,
 
-            type: ingredientAliases[text][0],
+            type:
+                ingredientAliases[text][0],
 
-            color: ingredientAliases[text][1],
+            color:
+                ingredientAliases[text][1],
 
-            quantity: quantity,
+            quantity:
+                quantity,
 
             valid: true
 
@@ -1376,32 +1708,50 @@ function parseIngredient(text) {
     }
 
 
-    const sortedFlowers = [...flowerData].sort(
-        (a, b) => b.type.length - a.type.length
-    );
+    const sortedFlowers =
+        [...flowerData].sort(
+            (a, b) =>
+                b.type.length -
+                a.type.length
+        );
 
 
-    for (const flower of sortedFlowers) {
+    for (
+        const flower of sortedFlowers
+    ) {
 
-        if (text.endsWith(flower.type)) {
+        if (
+            text.endsWith(
+                flower.type
+            )
+        ) {
 
-            const color = text.slice(
-                0,
-                text.length - flower.type.length
-            );
+            const color =
+                text.slice(
+                    0,
+                    text.length -
+                        flower.type.length
+                );
 
 
-            if (flower.colors.includes(color)) {
+            if (
+                flower.colors.includes(
+                    color
+                )
+            ) {
 
                 return {
 
                     original: text,
 
-                    type: flower.type,
+                    type:
+                        flower.type,
 
-                    color: color,
+                    color:
+                        color,
 
-                    quantity: quantity,
+                    quantity:
+                        quantity,
 
                     valid: true
 
@@ -1414,19 +1764,28 @@ function parseIngredient(text) {
     }
 
 
-    for (const flower of flowerData) {
+    for (
+        const flower of flowerData
+    ) {
 
-        if (flower.colors.includes(text)) {
+        if (
+            flower.colors.includes(
+                text
+            )
+        ) {
 
             return {
 
                 original: text,
 
-                type: flower.type,
+                type:
+                    flower.type,
 
-                color: text,
+                color:
+                    text,
 
-                quantity: quantity,
+                quantity:
+                    quantity,
 
                 valid: true
 
@@ -1465,23 +1824,34 @@ function parseBouquet(bouquet) {
     const unknown = [];
 
 
-    bouquet.ingredients.forEach(ingredientText => {
+    bouquet.ingredients.forEach(
+        ingredientText => {
 
-        const parsed = parseIngredient(ingredientText);
+            const parsed =
+                parseIngredient(
+                    ingredientText
+                );
 
 
-        if (!parsed.valid) {
+            if (
+                !parsed.valid
+            ) {
 
-            unknown.push(parsed);
+                unknown.push(
+                    parsed
+                );
 
-            return;
+                return;
+
+            }
+
+
+            items.push(
+                parsed
+            );
 
         }
-
-
-        items.push(parsed);
-
-    });
+    );
 
 
     const combined = {};
@@ -1489,19 +1859,24 @@ function parseBouquet(bouquet) {
 
     items.forEach(item => {
 
-        const key = makeKey(
-            item.type,
-            item.color
-        );
+        const key =
+            makeKey(
+                item.type,
+                item.color
+            );
 
 
-        if (!combined[key]) {
+        if (
+            !combined[key]
+        ) {
 
             combined[key] = {
 
-                type: item.type,
+                type:
+                    item.type,
 
-                color: item.color,
+                color:
+                    item.color,
 
                 quantity: 0
 
@@ -1510,16 +1885,21 @@ function parseBouquet(bouquet) {
         }
 
 
-        combined[key].quantity += item.quantity;
+        combined[key].quantity +=
+            item.quantity;
 
     });
 
 
     return {
 
-        items: Object.values(combined),
+        items:
+            Object.values(
+                combined
+            ),
 
-        unknown: unknown
+        unknown:
+            unknown
 
     };
 
@@ -1530,34 +1910,49 @@ function parseBouquet(bouquet) {
    10. 檢查是否能合成
    ========================================================= */
 
-function checkBouquet(bouquet) {
+function checkBouquet(
+    bouquet
+) {
 
-    const parsed = parseBouquet(bouquet);
+    const parsed =
+        parseBouquet(
+            bouquet
+        );
 
     const missing = [];
 
 
     parsed.items.forEach(item => {
 
-        const have = getQuantity(
-            item.type,
-            item.color
-        );
+        const have =
+            getQuantity(
+                item.type,
+                item.color
+            );
 
 
-        if (have < item.quantity) {
+        if (
+            have <
+            item.quantity
+        ) {
 
             missing.push({
 
-                type: item.type,
+                type:
+                    item.type,
 
-                color: item.color,
+                color:
+                    item.color,
 
-                need: item.quantity,
+                need:
+                    item.quantity,
 
-                have: have,
+                have:
+                    have,
 
-                missing: item.quantity - have
+                missing:
+                    item.quantity -
+                    have
 
             });
 
@@ -1568,13 +1963,15 @@ function checkBouquet(bouquet) {
 
     return {
 
-        parsed: parsed,
+        parsed:
+            parsed,
 
         canMake:
             parsed.unknown.length === 0 &&
             missing.length === 0,
 
-        missing: missing
+        missing:
+            missing
 
     };
 
@@ -1585,9 +1982,13 @@ function checkBouquet(bouquet) {
    11. 顯示材料
    ========================================================= */
 
-function ingredientText(bouquet) {
+function ingredientText(
+    bouquet
+) {
 
-    return bouquet.ingredients.join("、");
+    return bouquet.ingredients.join(
+        "、"
+    );
 
 }
 
@@ -1596,9 +1997,13 @@ function ingredientText(bouquet) {
    12. 花束名稱
    ========================================================= */
 
-function getBouquetName(bouquet) {
+function getBouquetName(
+    bouquet
+) {
 
-    if (bouquet.special) {
+    if (
+        bouquet.special
+    ) {
 
         return `#${bouquet.name}`;
 
@@ -1616,127 +2021,194 @@ function getBouquetName(bouquet) {
 
 function searchBouquets() {
 
-    const result = document.getElementById("result");
+    const result =
+        document.getElementById(
+            "result"
+        );
 
     result.innerHTML = "";
 
 
-    const title = document.createElement("div");
+    const title =
+        document.createElement(
+            "div"
+        );
 
-    title.className = "result-title";
-
-    title.textContent = "💐 查詢結果";
-
-    result.appendChild(title);
+    title.className =
+        "result-title";
 
 
     /*
-       排序規則：
+       這裡只增加你要求的小字：
 
-       第一部分：
-       所有可以合成的花束
-       → 價格由高到低
+       ($價錢 #特殊花束)
+    */
 
-       第二部分：
-       無法合成但缺少材料最少的 10 種
-       → 缺少材料總數由少到多
-       → 缺少數量相同時，價格由高到低
+    title.innerHTML =
+        `💐 查詢結果 <small style="font-size: 0.75em; font-weight: normal; opacity: 0.75;">($價錢 #特殊花束)</small>`;
+
+
+    result.appendChild(
+        title
+    );
+
+
+    /*
+       排序：
+
+       ① 所有可以合成的花束
+          → 價格高 → 低
+
+       ② 無法合成的花束
+          → 缺少材料數量少 → 多
+          → 數量相同時價格高 → 低
+          → 只顯示前 10 個
     */
 
 
-    const checkedBouquets = bouquets.map((bouquet, index) => {
+    const checkedBouquets =
+        bouquets.map(
+            (
+                bouquet,
+                index
+            ) => {
 
-        return {
+                return {
 
-            bouquet: bouquet,
+                    bouquet:
+                        bouquet,
 
-            index: index,
+                    index:
+                        index,
 
-            check: checkBouquet(bouquet)
+                    check:
+                        checkBouquet(
+                            bouquet
+                        )
 
-        };
+                };
 
-    });
+            }
+        );
 
 
     /* =====================================================
        可以合成的全部花束
        ===================================================== */
 
-    const canMakeBouquets = checkedBouquets
-        .filter(item => item.check.canMake)
-        .sort((a, b) => {
+    const canMakeBouquets =
+        checkedBouquets
 
-            return (
-                (b.bouquet.price || 0) -
-                (a.bouquet.price || 0)
+            .filter(
+                item =>
+                    item.check.canMake
+            )
+
+            .sort(
+                (a, b) => {
+
+                    return (
+                        (
+                            b.bouquet.price ||
+                            0
+                        ) -
+                        (
+                            a.bouquet.price ||
+                            0
+                        )
+                    );
+
+                }
             );
-
-        });
 
 
     /* =====================================================
-       無法合成的花束
+       無法合成
        找缺少材料最少的 10 種
        ===================================================== */
 
-    const cannotMakeBouquets = checkedBouquets
+    const cannotMakeBouquets =
+        checkedBouquets
 
-        .filter(item => {
+            .filter(
+                item => {
 
-            return (
-                !item.check.canMake &&
-                item.check.parsed.unknown.length === 0
+                    return (
+                        !item.check.canMake &&
+                        item.check.parsed
+                            .unknown
+                            .length === 0
+                    );
+
+                }
+            )
+
+            .map(
+                item => {
+
+                    const missingCount =
+                        item.check.missing.reduce(
+                            (
+                                sum,
+                                material
+                            ) => {
+
+                                return (
+                                    sum +
+                                    material.missing
+                                );
+
+                            },
+                            0
+                        );
+
+
+                    return {
+
+                        ...item,
+
+                        missingCount:
+                            missingCount
+
+                    };
+
+                }
+            )
+
+            .sort(
+                (a, b) => {
+
+                    if (
+                        a.missingCount !==
+                        b.missingCount
+                    ) {
+
+                        return (
+                            a.missingCount -
+                            b.missingCount
+                        );
+
+                    }
+
+
+                    return (
+                        (
+                            b.bouquet.price ||
+                            0
+                        ) -
+                        (
+                            a.bouquet.price ||
+                            0
+                        )
+                    );
+
+                }
+            )
+
+            .slice(
+                0,
+                10
             );
-
-        })
-
-        .map(item => {
-
-            const missingCount =
-                item.check.missing.reduce(
-                    (sum, material) => {
-
-                        return sum + material.missing;
-
-                    },
-                    0
-                );
-
-
-            return {
-
-                ...item,
-
-                missingCount: missingCount
-
-            };
-
-        })
-
-        .sort((a, b) => {
-
-            if (
-                a.missingCount !==
-                b.missingCount
-            ) {
-
-                return (
-                    a.missingCount -
-                    b.missingCount
-                );
-
-            }
-
-
-            return (
-                (b.bouquet.price || 0) -
-                (a.bouquet.price || 0)
-            );
-
-        })
-
-        .slice(0, 10);
 
 
     const displayList = [
@@ -1752,149 +2224,209 @@ function searchBouquets() {
        顯示結果
        ===================================================== */
 
-    displayList.forEach(item => {
+    displayList.forEach(
+        item => {
 
-        const bouquet = item.bouquet;
+            const bouquet =
+                item.bouquet;
 
-        const index = item.index;
+            const index =
+                item.index;
 
-        const check = item.check;
+            const check =
+                item.check;
 
 
-        const card = document.createElement("div");
+            const card =
+                document.createElement(
+                    "div"
+                );
 
-        card.className =
-            "result-card " +
-            (
-                check.canMake
-                    ? "can-make"
-                    : "cannot-make"
+            card.className =
+                "result-card " +
+                (
+                    check.canMake
+                        ? "can-make"
+                        : "cannot-make"
+                );
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "bouquet-name";
+
+            name.textContent =
+                getBouquetName(
+                    bouquet
+                ) ||
+                "未命名花束";
+
+            card.appendChild(
+                name
             );
 
 
-        const name = document.createElement("div");
+            if (
+                bouquet.price !==
+                undefined
+            ) {
 
-        name.className = "bouquet-name";
+                const price =
+                    document.createElement(
+                        "div"
+                    );
 
-        name.textContent =
-            getBouquetName(bouquet) ||
-            "未命名花束";
+                price.className =
+                    "price";
 
-        card.appendChild(name);
+                price.textContent =
+                    `$${bouquet.price}`;
 
-
-        if (bouquet.price !== undefined) {
-
-            const price = document.createElement("div");
-
-            price.className = "price";
-
-            price.textContent =
-                `$${bouquet.price}`;
-
-            card.appendChild(price);
-
-        }
-
-
-        const recipe = document.createElement("div");
-
-        recipe.className = "recipe";
-
-        recipe.innerHTML =
-            `<strong>材料：</strong>${escapeHTML(
-                ingredientText(bouquet)
-            )}`;
-
-        card.appendChild(recipe);
-
-
-        /* =================================================
-           可以合成
-           ================================================= */
-
-        if (check.canMake) {
-
-            const button =
-                document.createElement("button");
-
-
-            button.className =
-                "craft-button";
-
-
-            button.textContent =
-                "💐 合成";
-
-
-            button.onclick = () => {
-
-                craftBouquet(index);
-
-            };
-
-
-            card.appendChild(button);
-
-        }
-
-
-        /* =================================================
-           無法合成
-           ================================================= */
-
-        else {
-
-            if (check.missing.length > 0) {
-
-                const missing =
-                    document.createElement("div");
-
-
-                missing.className =
-                    "missing";
-
-
-                const missingText =
-                    check.missing
-
-                        .map(material => {
-
-                            return (
-                                `${material.color}${material.type} × ${material.missing}`
-                            );
-
-                        })
-
-                        .join("、");
-
-
-                missing.innerHTML =
-                    `<strong>缺少：</strong>${escapeHTML(
-                        missingText
-                    )}`;
-
-
-                card.appendChild(missing);
+                card.appendChild(
+                    price
+                );
 
             }
 
+
+            const recipe =
+                document.createElement(
+                    "div"
+                );
+
+            recipe.className =
+                "recipe";
+
+            recipe.innerHTML =
+                `<strong>材料：</strong>${escapeHTML(
+                    ingredientText(
+                        bouquet
+                    )
+                )}`;
+
+            card.appendChild(
+                recipe
+            );
+
+
+            /* =================================================
+               可以合成
+               ================================================= */
+
+            if (
+                check.canMake
+            ) {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.className =
+                    "craft-button";
+
+
+                button.textContent =
+                    "💐 合成";
+
+
+                button.onclick =
+                    () => {
+
+                        craftBouquet(
+                            index
+                        );
+
+                    };
+
+
+                card.appendChild(
+                    button
+                );
+
+            }
+
+
+            /* =================================================
+               無法合成
+               ================================================= */
+
+            else {
+
+                if (
+                    check.missing.length >
+                    0
+                ) {
+
+                    const missing =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    missing.className =
+                        "missing";
+
+
+                    const missingText =
+                        check.missing
+
+                            .map(
+                                material => {
+
+                                    return (
+                                        `${material.color}${material.type} × ${material.missing}`
+                                    );
+
+                                }
+                            )
+
+                            .join(
+                                "、"
+                            );
+
+
+                    missing.innerHTML =
+                        `<strong>缺少：</strong>${escapeHTML(
+                            missingText
+                        )}`;
+
+
+                    card.appendChild(
+                        missing
+                    );
+
+                }
+
+            }
+
+
+            result.appendChild(
+                card
+            );
+
         }
-
-
-        result.appendChild(card);
-
-    });
+    );
 
 
     /* =====================================================
-       如果完全沒有可以合成的花束
+       如果完全沒有可以合成
        ===================================================== */
 
-    if (canMakeBouquets.length === 0) {
+    if (
+        canMakeBouquets.length ===
+        0
+    ) {
 
         const message =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
 
         message.className =
@@ -1919,15 +2451,25 @@ function searchBouquets() {
    14. 合成花束
    ========================================================= */
 
-function craftBouquet(index) {
+function craftBouquet(
+    index
+) {
 
-    const bouquet = bouquets[index];
+    const bouquet =
+        bouquets[index];
 
 
-    /* 再檢查一次 */
+    /*
+       再檢查一次
+
+       防止查詢畫面顯示可以合成，
+       但按下按鈕之前材料已經被其他操作扣掉。
+    */
 
     const check =
-        checkBouquet(bouquet);
+        checkBouquet(
+            bouquet
+        );
 
 
     /* =====================================================
@@ -1935,7 +2477,9 @@ function craftBouquet(index) {
        不扣材料
        ===================================================== */
 
-    if (!check.canMake) {
+    if (
+        !check.canMake
+    ) {
 
         alert(
             "這個花束目前已經無法合成，材料沒有扣除。"
@@ -1954,18 +2498,29 @@ function craftBouquet(index) {
        扣除材料
        ===================================================== */
 
-    check.parsed.items.forEach(item => {
+    check.parsed.items.forEach(
+        item => {
 
-        const key = makeKey(
-            item.type,
-            item.color
-        );
+            const key =
+                makeKey(
+                    item.type,
+                    item.color
+                );
 
 
-        myFlowers[key] -=
-            item.quantity;
+            myFlowers[key] -=
+                item.quantity;
 
-    });
+        }
+    );
+
+
+    /*
+       ★ 合成後立刻儲存
+       刷新後也會保留扣除後的數量
+    */
+
+    saveFlowers();
 
 
     /* =====================================================
@@ -1984,7 +2539,9 @@ function craftBouquet(index) {
 
     alert(
         `💐「${
-            getBouquetName(bouquet) ||
+            getBouquetName(
+                bouquet
+            ) ||
             "未命名花束"
         }」合成成功！`
     );
@@ -1999,146 +2556,181 @@ function craftBouquet(index) {
 function showRumors() {
 
     const result =
-        document.getElementById("result");
-
+        document.getElementById(
+            "result"
+        );
 
     result.innerHTML = "";
 
 
     const title =
-        document.createElement("div");
-
+        document.createElement(
+            "div"
+        );
 
     title.className =
         "result-title";
 
-
     title.textContent =
         "📰 小道消息";
 
-
-    result.appendChild(title);
-
-
-    rumors.forEach((rumor, index) => {
-
-        const card =
-            document.createElement("div");
+    result.appendChild(
+        title
+    );
 
 
-        card.className =
-            "rumor-card";
+    rumors.forEach(
+        (rumor, index) => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+            card.className =
+                "rumor-card";
 
 
-        /* =================================================
-           小道消息文字
-           ================================================= */
+            /* =================================================
+               小道消息文字
+               ================================================= */
 
-        const textElement =
-            document.createElement("div");
-
-
-        textElement.innerHTML =
-            `<strong>${index + 1}.</strong> ` +
-            escapeHTML(rumor);
+            const textElement =
+                document.createElement(
+                    "div"
+                );
 
 
-        card.appendChild(textElement);
+            textElement.innerHTML =
+                `<strong>${index + 1}.</strong> ` +
+                escapeHTML(
+                    rumor
+                );
 
 
-        /* =================================================
-           把小道消息當成一個花束配方來檢查
-           ================================================= */
-
-        const rumorBouquet = {
-
-            name:
-                `小道消息 ${index + 1}`,
-
-            ingredients:
-                rumor.split("、")
-
-        };
+            card.appendChild(
+                textElement
+            );
 
 
-        const check =
-            checkBouquet(rumorBouquet);
+            /* =================================================
+               把小道消息當成一個花束配方檢查
+               ================================================= */
 
+            const rumorBouquet = {
 
-        /* =================================================
-           材料足夠 → 顯示合成按鈕
-           ================================================= */
+                name:
+                    `小道消息 ${index + 1}`,
 
-        if (check.canMake) {
-
-            const button =
-                document.createElement("button");
-
-
-            button.className =
-                "craft-button";
-
-
-            button.textContent =
-                "💐 合成";
-
-
-            button.onclick = () => {
-
-                craftRumor(index);
+                ingredients:
+                    rumor.split("、")
 
             };
 
 
-            card.appendChild(button);
-
-        }
-
-
-        /* =================================================
-           材料不足 → 顯示缺少材料
-           ================================================= */
-
-        else if (
-            check.missing.length > 0
-        ) {
-
-            const missing =
-                document.createElement("div");
+            const check =
+                checkBouquet(
+                    rumorBouquet
+                );
 
 
-            missing.className =
-                "missing";
+            /* =================================================
+               材料足夠
+               → 顯示合成按鈕
+               ================================================= */
+
+            if (
+                check.canMake
+            ) {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
 
 
-            const missingText =
-                check.missing
+                button.className =
+                    "craft-button";
 
-                    .map(material => {
 
-                        return (
-                            `${material.color}${material.type} × ${material.missing}`
+                button.textContent =
+                    "💐 合成";
+
+
+                button.onclick =
+                    () => {
+
+                        craftRumor(
+                            index
                         );
 
-                    })
-
-                    .join("、");
+                    };
 
 
-            missing.innerHTML =
-                `<strong>缺少：</strong>${escapeHTML(
-                    missingText
-                )}`;
+                card.appendChild(
+                    button
+                );
+
+            }
 
 
-            card.appendChild(missing);
+            /* =================================================
+               材料不足
+               → 顯示缺少材料
+               ================================================= */
+
+            else if (
+                check.missing.length >
+                0
+            ) {
+
+                const missing =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                missing.className =
+                    "missing";
+
+
+                const missingText =
+                    check.missing
+
+                        .map(
+                            material => {
+
+                                return (
+                                    `${material.color}${material.type} × ${material.missing}`
+                                );
+
+                            }
+                        )
+
+                        .join(
+                            "、"
+                        );
+
+
+                missing.innerHTML =
+                    `<strong>缺少：</strong>${escapeHTML(
+                        missingText
+                    )}`;
+
+
+                card.appendChild(
+                    missing
+                );
+
+            }
+
+
+            result.appendChild(
+                card
+            );
 
         }
-
-
-        result.appendChild(card);
-
-    });
+    );
 
 }
 
@@ -2147,7 +2739,9 @@ function showRumors() {
    15-1. 合成小道消息
    ========================================================= */
 
-function craftRumor(index) {
+function craftRumor(
+    index
+) {
 
     const rumor =
         rumors[index];
@@ -2164,16 +2758,20 @@ function craftRumor(index) {
     };
 
 
-    /* =====================================================
+    /*
        再檢查一次
        防止材料不足時誤扣
-       ===================================================== */
+    */
 
     const check =
-        checkBouquet(rumorBouquet);
+        checkBouquet(
+            rumorBouquet
+        );
 
 
-    if (!check.canMake) {
+    if (
+        !check.canMake
+    ) {
 
         alert(
             "這個小道消息目前已經無法合成，材料沒有扣除。"
@@ -2192,19 +2790,28 @@ function craftRumor(index) {
        扣除材料
        ===================================================== */
 
-    check.parsed.items.forEach(item => {
+    check.parsed.items.forEach(
+        item => {
 
-        const key =
-            makeKey(
-                item.type,
-                item.color
-            );
+            const key =
+                makeKey(
+                    item.type,
+                    item.color
+                );
 
 
-        myFlowers[key] -=
-            item.quantity;
+            myFlowers[key] -=
+                item.quantity;
 
-    });
+        }
+    );
+
+
+    /*
+       ★ 合成小道消息後也要儲存
+    */
+
+    saveFlowers();
 
 
     /* =====================================================
@@ -2234,7 +2841,9 @@ function craftRumor(index) {
    16. HTML 防護
    ========================================================= */
 
-function escapeHTML(text) {
+function escapeHTML(
+    text
+) {
 
     return String(text)
 
